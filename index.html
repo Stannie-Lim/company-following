@@ -15,26 +15,31 @@
             }
             h1, h2 {
                 font-weight: bold;
+                margin: 2rem;
             }
             ul {
                 list-style-type: none;
-                padding-left: 3rem;
+                padding-left: 2rem;
             }   
             div > li {
-                margin-top: 1rem;
+                margin: 1rem 1rem 0 1rem; 
                 font-size: 1.5rem;
             }
             .companies {
                 display: flex;
                 flex-wrap: wrap;
+                margin-top: 1rem;
             }
             select {
                 width: 100%;
                 padding: 0.5rem;
-                margin: 1rem 0;
+                margin: 1rem;
             }
             div {
-                border-bottom: 1px solid grey;
+                border-bottom: 1px solid black;
+            }
+            .active {
+                background-color: tomato;
             }
         </style>
 
@@ -54,7 +59,6 @@
             const fetchUser = async ()=> {
                 const storage = window.localStorage;
                 const userId = storage.getItem('userId'); 
-                // console.log(userId);
                 if(userId){
                     try {
                         return (await axios.get(`${API}/users/detail/${userId}`)).data;
@@ -69,46 +73,60 @@
                 return user;
             };
 
+            const getOption = (company, following) => {
+                for(let i = 0; i < following.length; i++) {
+                    if(following[i].companyId === company.id) {
+                        return (
+                            <select defaultValue={following[i].rating}>
+                                <option value='1'>1</option>
+                                <option value='2'>2</option>
+                                <option value='3'>3</option>
+                                <option value='4'>4</option>
+                                <option value='5'>5</option>
+                            </select>
+                        )
+                    } 
+                }
+                return (
+                    <select defaultValue='0'>
+                        <option value='0'>Not following</option>
+                        <option value='1'>1</option>
+                        <option value='2'>2</option>
+                        <option value='3'>3</option>
+                        <option value='4'>4</option>
+                        <option value='5'>5</option>
+                    </select>
+                )
+            };
+
             const getAllCompanies = (companies, following) => {
-                // const followingCompanyNames = companies.filter(company => {
-                //     for(let i = 0; i < following.length; i++) {
-                //         if(following[i].id === company.id) {
-                //             return company.name;
-                //         }
-                //     }
-                // });
-                // console.log(followingCompanyNames);
+                const followingCompaniesName = [];
+                const followingCompaniesArr = companies.filter(company => {
+                    for(let i = 0; i < following.length; i++) {
+                        if(following[i].companyId === company.id) {
+                            return company;
+                        }    
+                    }
+                })
+                followingCompaniesArr.forEach(company => {
+                    followingCompaniesName.push(company.name);
+                });
+
                 return (
                         <ul>
                             {
                                 companies.map(company => {
+                                    const classname = `companies ${followingCompaniesName.includes(company.name) ? 'active' : ''}`;
                                     return (
-                                        <div className="companies " key={company.id}>
+                                        <div className={classname} key={company.id}>
                                             <li>{company.name}</li>
-                                            <select>
-                                                <option>
-                                                    sadasdsa
-                                                </option>
-                                            </select>
+                                            {getOption(company, following)}
                                         </div>
                                     )
                                 })
                             }
                         </ul>
                     )
-                };
-
-            class Company extends Component {
-                constructor() {
-                    super();
-                    this.state = {
-                        following: []
-                    };
-                }
-
-                render() {
-                    return null;
-                }
             };
             
             class App extends Component {
