@@ -10,7 +10,32 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
         <style>
-            
+            body {
+                font-family: sans-serif;    
+            }
+            h1, h2 {
+                font-weight: bold;
+            }
+            ul {
+                list-style-type: none;
+                padding-left: 3rem;
+            }   
+            div > li {
+                margin-top: 1rem;
+                font-size: 1.5rem;
+            }
+            .companies {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            select {
+                width: 100%;
+                padding: 0.5rem;
+                margin: 1rem 0;
+            }
+            div {
+                border-bottom: 1px solid grey;
+            }
         </style>
 
 
@@ -24,18 +49,100 @@
             const {Component} = React;
             const {HashRouter, Link, Route} = ReactRouterDOM;
             const {render} = ReactDOM;
+
+            const API = 'https://acme-users-api-rev.herokuapp.com/api';
+            const fetchUser = async ()=> {
+                const storage = window.localStorage;
+                const userId = storage.getItem('userId'); 
+                // console.log(userId);
+                if(userId){
+                    try {
+                        return (await axios.get(`${API}/users/detail/${userId}`)).data;
+                    }
+                    catch(ex){
+                        storage.removeItem('userId');
+                        return fetchUser();
+                    }
+                }
+                const user = (await axios.get(`${API}/users/random`)).data;
+                storage.setItem('userId', user.id);
+                return user;
+            };
+
+            const getAllCompanies = (companies, following) => {
+                // const followingCompanyNames = companies.filter(company => {
+                //     for(let i = 0; i < following.length; i++) {
+                //         if(following[i].id === company.id) {
+                //             return company.name;
+                //         }
+                //     }
+                // });
+                // console.log(followingCompanyNames);
+                return (
+                        <ul>
+                            {
+                                companies.map(company => {
+                                    return (
+                                        <div className="companies " key={company.id}>
+                                            <li>{company.name}</li>
+                                            <select>
+                                                <option>
+                                                    sadasdsa
+                                                </option>
+                                            </select>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </ul>
+                    )
+                };
+
+            class Company extends Component {
+                constructor() {
+                    super();
+                    this.state = {
+                        following: []
+                    };
+                }
+
+                render() {
+                    return null;
+                }
+            };
             
             class App extends Component {
                 constructor() {
                     super();
                     this.state = {
-
+                        user: {},
+                        allCompanies: [],
+                        followingCompanies: []
                     };
                 }
 
-                render() {
+                async componentDidMount() {
+                    const myUser = await fetchUser();
+                    const allCompaniesAPI = await axios.get(`${API}/companies`);
+                    const followingCompaniesAPI = await axios.get(`${API}/users/${myUser.id}/followingCompanies`);
+                    this.setState({
+                        user: myUser,
+                        allCompanies: allCompaniesAPI.data,
+                        followingCompanies: followingCompaniesAPI.data
+                    });
                     
-                    return null;
+                }
+
+                render() {
+                    const { user, allCompanies, followingCompanies } = this.state;
+                    // getFavoriteCompanies(allCompanies, f);
+                    return (
+                        <div>
+                            <h1>Acme Company Follower</h1>
+                            <h2>You ({user.fullName}) are following {followingCompanies.length} companies</h2>
+                            { getAllCompanies(allCompanies, followingCompanies) }
+                        </div>
+                    );
                 }
             };
 
